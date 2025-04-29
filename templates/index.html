@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government Scheme Eligibility Checker</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Darken the background and use a cover image */
+        body {
+            background-image: url('https://i.pinimg.com/originals/4f/62/72/4f62726e963603b154eac373ef9a75fa.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            position: relative;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        /* Add a dark overlay to the background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Dark overlay */
+            z-index: 0;
+        }
+
+        /* Center the card on the page with initial opacity and position */
+        .card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateY(100px);
+            background-color: rgba(255, 255, 255, 0.7); /* Reduced translucency */
+            border: 2px solid #4CAF50; /* Greenish border */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 400px;
+            opacity: 0;
+            transition: all 1s ease; /* Smooth transition for opacity and position */
+            z-index: 1; /* Ensure the card is above the overlay */
+        }
+
+        /* Slide-up animation when the page loads */
+        .card.animate {
+            opacity: 1;
+            transform: translate(-50%, -50%) translateY(0); /* Center the card */
+        }
+
+        /* Headings inside the card */
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        label {
+            font-size: 16px;
+            color: #333;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049; /* Slightly darker green on hover */
+        }
+
+        /* Style the result section */
+        #result {
+            display: none; /* Hide initially */
+            z-index: 1; /* Ensure the result is above the overlay */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the result */
+            width: 1000px; /* Full width, adjust as needed */
+            max-width: 600px; /* Max width to prevent overflow */
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.7); /* Same translucency as card */
+        }
+
+        /* Placard styles */
+        .placard {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px;
+            height: 70px; /* Height remains unchanged */
+            width: 120px; /* Increased width for better layout */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden; /* Prevent scrollbar */
+            position: relative; /* For absolute positioning of the tooltip */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow */
+        }
+        
+
+        .placard:hover {
+            transform: scale(1.05);
+            margin-below : 50 px /* Slightly enlarge on hover */
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Shadow on hover */
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            display: none; /* Hide by default */
+            position: absolute;
+            bottom: 100%; /* Position above the placard */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            width: 180px; /* Fixed width for tooltip */
+            z-index: 2; /* Ensure tooltip is above placard */
+            transition: max-height 0.3s ease; /* Transition effect for height */
+            max-height: 0; /* Initially hidden */
+            overflow: hidden; /* Prevent overflow */
+        }
+
+        .placard:hover .tooltip {
+            display: block; /* Show tooltip on hover */
+            max-height: 200px; /* Expand height on hover */
+        }
+
+        /* Table styles */
+        table {
+            width: 100%; /* Make the table full width */
+            border-collapse: collapse;
+            margin: 0 auto; /* Center the table */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1; /* Highlight row on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="card" id="card">
+        <h1>Check Your Eligibility for Government Schemes</h1>
+        <form id="eligibility-form">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" required>
+
+            <label for="income">Income:</label>
+            <input type="number" id="income" name="income" required>
+
+            <button type="submit">Check Eligibility</button>
+        </form>
+    </div>
+
+    <div id="result" style: "width:100%; height:90%">
+        <h2>Results</h2>
+        <h3>Eligible Schemes</h3>
+        <div id="eligible-schemes-container" style="display: flex; flex-wrap: wrap; justify-content: center;">
+            <!-- Eligible placards will be appended here -->
+        </div>
+
+        <h3>AI Recommended Schemes</h3>
+        <div id="ai-schemes-container" style="display: flex; flex-wrap: wrap; justify-content: center;">
+            <!-- AI recommended placards will be appended here -->
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Add the animate class to slide up the card when the page loads
+            setTimeout(function() {
+                $('#card').addClass('animate');
+            }, 500);
+    
+            // Handle form submission
+            $('#eligibility-form').submit(function(event) {
+                event.preventDefault();
+                
+                // Hide the card after submission
+                $('#card').fadeOut(300); // Fades out the card
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '/predict',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        $('#eligible-schemes-container').empty(); // Clear previous results
+                        $('#ai-schemes-container').empty(); // Clear previous results
+                        $('#result').show(); // Show the result section
+    
+                        // Append eligible schemes placards
+                        response.eligible_schemes.forEach(function(scheme) {
+                            $('#eligible-schemes-container').append(`
+                                <div class="placard" data-scheme="${scheme}">
+                                    <h3>${scheme}</h3>
+                                    <div class="tooltip">
+                                        <strong>Benefits:</strong> Benefit details<br>
+                                        <strong>Genre:</strong> Genre details<br>
+                                        <strong>State:</strong> State details<br>
+                                        <strong>Description:</strong> Description details
+                                    </div>
+                                </div>
+                            `);
+                        });
+    
+                        // Append AI recommended schemes placards
+                        response.recommendations.forEach(function(scheme) {
+                            $('#ai-schemes-container').append(`
+                                <div class="placard" data-scheme="${scheme}">
+                                    <h3>${scheme}</h3>
+                                    <div class="tooltip">
+                                        <strong>Benefits:</strong> Benefit details<br>
+                                        <strong>Genre:</strong> Genre details<br>
+                                        <strong>State:</strong> State details<br>
+                                        <strong>Description:</strong> Description details
+                                    </div>
+                                </div>
+                            `);
+                        });
+    
+                        // Add click event to placards
+                        $('.placard').on('click', function() {
+                            const schemeName = $(this).data('scheme');
+                            $.ajax({
+                                type: 'POST',
+                                url: '/get_scheme_info',
+                                data: { scheme_name: schemeName },
+                                success: function(schemeInfo) {
+                                    // Show scheme information in an alert or a modal (you can customize this)
+                                    alert(`
+                                        Scheme Name: ${schemeInfo['Scheme Name']}
+                                        Genre: ${schemeInfo['Genre']}
+                                        Description: ${schemeInfo['Description']}
+                                        Eligibility Criteria: ${schemeInfo['Eligibility Criteria']}
+                                    `);
+                                },
+                                error: function(error) {
+                                    console.error('Error:', error);
+                                }
+                            });
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>    
+</body>
+</html>

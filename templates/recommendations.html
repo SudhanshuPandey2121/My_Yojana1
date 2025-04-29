@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Schemes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .schemes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .scheme-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .scheme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .scheme-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #e0e0e0;
+        }
+
+        .scheme-content {
+            padding: 1.5rem;
+        }
+
+        .scheme-title {
+            color: #2e7d32;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .scheme-description {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .scheme-score {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #2e7d32;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .scheme-reason {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .scheme-link {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: #2e7d32;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .scheme-link:hover {
+            background: #1b5e20;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: #666;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 2rem;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #555;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2e7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-results h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 1.5rem 0;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .schemes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Recommended Schemes</h1>
+            <p>Based on your profile, here are the schemes that best match your needs</p>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Finding the best schemes for you...</p>
+        </div>
+
+        {% if recommended_schemes %}
+        <div class="schemes-grid">
+            {% for scheme in recommended_schemes|sort(attribute='score', reverse=true) %}
+            {% set idx = loop.index0 %}
+            {% set fallback_img = default_images[idx] if default_images and idx < default_images|length else 'https://via.placeholder.com/350x200?text=No+Image' %}
+            <div class="scheme-card">
+                <img 
+                    src="{{ scheme.image_url if scheme.image_url else fallback_img }}"
+                    alt="{{ scheme.name }}"
+                    class="scheme-image"
+                    onerror="this.onerror=null;this.src='{{ fallback_img }}';">
+                <div class="scheme-score">Score: {{ scheme.score }}/10</div>
+                <div class="scheme-content">
+                    <h3 class="scheme-title">{{ scheme.name }}</h3>
+                    <p class="scheme-description">{{ scheme.short_description }}</p>
+                    {% if scheme.reason %}
+                    <div class="scheme-reason">{{ scheme.reason }}</div>
+                    {% endif %}
+                    <a href="/scheme/{{ scheme.id }}" class="scheme-link">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <h3>No schemes found</h3>
+            <p>Try adjusting your criteria to find more schemes.</p>
+        </div>
+        {% endif %}
+
+        <a href="/check-schemes" class="back-button">Back to Form</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            // Show loading state
+            loading.style.display = 'block';
+            // Hide loading after a short delay (remove in production)
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 1000);
+            // Handle errors
+            var error = {{ error|tojson|default('null') }};
+            if (error) {
+                errorMessage.textContent = error;
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 

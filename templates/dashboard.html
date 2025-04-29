@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+
+.yojana{
+    transform: translateX(-50%); /* Center the button */
+    background-color: #4CAF50; /* Darker green background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 1em; /* Font size */
+    transition: background 0.3s, transform 0.
+}
+
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            background-image: url('https://plus.unsplash.com/premium_photo-1663945778994-11b3201882a0?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); /* Background image */
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+        }
+        body.dark-mode {
+            background: black;
+            color: #f0f4f8;
+        }
+        header {
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background: #347928;
+            color: white;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        nav {
+            background: #799351;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+        nav a {
+            text-decoration: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+            font-size: 1em;
+            margin: 0 8px;
+        }
+        nav a:hover {
+            color: #333;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 400px;
+            perspective: 1000px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .flip-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            box-shadow: 0 8px 14px 0 rgba(0,0,0,0.2);
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border: 1px solid coral;
+            border-radius: 1rem;
+        }
+        .flip-card-front {
+            background: rgba(255, 255, 255, 0.7); /* More translucent */
+            color: #333; /* Darker text color for better contrast */
+        }
+        .flip-card-back {
+            background-color: rgba(255, 255, 255, 0.7); /* More translucent */
+            color: #333; /* Darker text color for better contrast */
+            transform: rotateY(180deg);
+        }
+        #language-selector {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 30px;
+            background-color: #799351;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+        #language-selector:hover {
+            background-color: #5b7238;
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .title {
+            font-size: 1.5em;
+            font-weight: 700;
+            text-align: center;
+            margin: 0;
+        }
+        .scheme-image {
+            max-width: 100%;
+            max-height: 70%;
+            margin-bottom: 10px;
+        }
+        body.dark-mode .flip-card-front {
+            background-color: rgba(151, 190, 90, 0.8);
+        }
+        body.dark-mode .flip-card-back {
+            background-color: rgba(205, 194, 165, 0.8);
+        }
+        @media screen and (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media screen and (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            #language-selector {
+                font-size: 0.9em; /* Smaller font size for mobile */
+            }
+        }
+        footer {
+            background: #347928; /* Same color as header */
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto; /* Pushes the footer to the bottom */
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .animated-button {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 16px 36px;
+            border: 4px solid;
+            border-color: transparent;
+            font-size: 16px;
+            background-color: inherit;
+            border-radius: 100px;
+            font-weight: 600;
+            color: greenyellow;
+            box-shadow: 0 0 0 2px greenyellow;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          
+          .animated-button svg {
+            position: absolute;
+            width: 24px;
+            fill: greenyellow;
+            z-index: 9;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          
+          .animated-button .arr-1 {
+            right: 16px;
+          }
+          
+          .animated-button .arr-2 {
+            left: -25%;
+          }
+          
+          .animated-button .circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background-color: greenyellow;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          
+          .animated-button .text {
+            position: relative;
+            z-index: 1;
+            transform: translateX(-12px);
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          
+          .animated-button:hover {
+            box-shadow: 0 0 0 12px transparent;
+            color: #212121;
+            border-radius: 12px;
+          }
+          
+          .animated-button:hover .arr-1 {
+            right: -25%;
+          }
+          
+          .animated-button:hover .arr-2 {
+            left: 16px;
+          }
+          
+          .animated-button:hover .text {
+            transform: translateX(12px);
+          }
+          
+          .animated-button:hover svg {
+            fill: #212121;
+          }
+          
+          .animated-button:active {
+            scale: 0.95;
+            box-shadow: 0 0 0 4px greenyellow;
+          }
+          
+          .animated-button:hover .circle {
+            width: 220px;
+            height: 220px;
+            opacity: 1;
+          }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-item {
+            flex: 1 1 200px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<script>
+    const translations = {
+        en: {
+            title: "My Yojana",
+            centralSchemes: "Central Schemes",
+            govtSchemes: "Govt Schemes",
+            checkSchemes: "Check Eligible Schemes",
+            trackApplication: "Track your application",
+            scheme1Title: "Pradhan Mantri Jan Arogya Yojna",
+            scheme1BackTitle: "Education for All",
+            scheme1Description: "This scheme provides free education to children from underprivileged backgrounds.",
+            scheme2Title: "Asagatit Karmakar Gambhir Bimari Chikitsa Sahayata (PM-JAY)",
+            scheme2BackTitle: "Asagatit Karmakar Gambhir Bimari Chikitsa Sahayata (PM-JAY)",
+            scheme2Description: "Labour department of chhatisgarh state started this scheme for unorganized workers.",
+            scheme3Title: "Pradhan Mantri Awas Yojana (PMAY)",
+            scheme3BackTitle: "Pradhan Mantri Awas Yojana (PMAY)",
+            scheme3Description: "Aims to provide affordable housing to urban and rural poor by 2022.",
+            scheme4Title: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+            scheme4BackTitle: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+            scheme4Description: "Provides income support of ₹6,000 per year to eligible farmer families.",
+            scheme5Title: "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+            scheme5BackTitle: "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+            scheme5Description: "Offers insurance coverage for crops against natural calamities, pests, and diseases.",
+            scheme6Title: "Atal Pension Yojana (APY)",
+            scheme6BackTitle: "Atal Pension Yojana (APY)",
+            scheme6Description: "A pension scheme that guarantees a fixed monthly pension after retirement for the unorganized sector.",
+            scheme7Title: "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+            scheme7BackTitle: "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+            scheme7Description: "Life insurance scheme offering ₹2 lakh coverage for death due to any cause, at a premium of ₹330 per annum.",
+            scheme8Title: "Ayushman Bharat Health and Wellness Centres",
+            scheme8BackTitle: "Ayushman Bharat Health and Wellness Centres",
+            scheme8Description: "Provides comprehensive primary healthcare services to communities.",
+            scheme9Title: "Stand Up India Scheme",
+            scheme9BackTitle: "Stand Up India Scheme",
+            scheme9Description: "Provides bank loans between ₹10 lakh and ₹1 crore to promote entrepreneurship among SC/ST and women.",
+            scheme10Title: "National Pension Scheme (NPS)",
+            scheme10BackTitle: "National Pension Scheme (NPS)",
+            scheme10Description: "A voluntary retirement savings plan for Indian citizens to ensure financial stability post-retirement.",
+            scheme11Title: "Deen Dayal Upadhyaya Gram Jyoti Yojana (DDUGJY)",
+            scheme11BackTitle: "Deen Dayal Upadhyaya Gram Jyoti Yojana (DDUGJY)",
+            scheme11Description: "Provides rural electrification and power for households across India.",
+            apply: "Apply",
+        },
+        hi: {
+            title: "मेरी योजना",
+            centralSchemes: "केंद्रीय योजनाएं",
+            govtSchemes: "सरकारी योजनाएं",
+            checkSchemes: "योग्य योजनाएं जांचें",
+            trackApplication: "अपने आवेदन को ट्रैक करें",
+            scheme1Title: "प्रधानमंत्री जन आरोग्य योजना",
+            scheme1BackTitle: "सभी के लिए शिक्षा",
+            scheme1Description: "यह योजना वंचित पृष्ठभूमि से आने वाले बच्चों को मुफ्त शिक्षा प्रदान करती है।",
+            scheme2Title: "असंगठित कर्मकार गंभीर बीमारी चिकित्सा सहायता (PM-JAY)",
+            scheme2BackTitle: "असंगठित कर्मकार गंभीर बीमारी चिकित्सा सहायता (PM-JAY)",
+            scheme2Description: "छत्तीसगढ़ राज्य का श्रम विभाग ने इस योजना को असंगठित श्रमिकों के लिए शुरू किया।",
+            scheme3Title: "प्रधानमंत्री आवास योजना (PMAY)",
+            scheme3BackTitle: "प्रधानमंत्री आवास योजना (PMAY)",
+            scheme3Description: "2022 तक शहरी और ग्रामीण गरीबों को सस्ती आवास प्रदान करने का उद्देश्य।",
+            scheme4Title: "प्रधानमंत्री किसान सम्मान निधि (PM-KISAN)",
+            scheme4BackTitle: "प्रधानमंत्री किसान सम्मान निधि (PM-KISAN)",
+            scheme4Description: "इस योजना के अंतर्गत पात्र किसान परिवारों को ₹6,000 प्रति वर्ष की आय सहायता प्रदान की जाती है।",
+            scheme5Title: "प्रधानमंत्री फसल बीमा योजना (PMFBY)",
+            scheme5BackTitle: "प्रधानमंत्री फसल बीमा योजना (PMFBY)",
+            scheme5Description: "प्राकृतिक आपदाओं, कीटों और बीमारियों के खिलाफ फसल के लिए बीमा कवरेज प्रदान करता है।",
+            scheme6Title: "अटल पेंशन योजना (APY)",
+            scheme6BackTitle: "अटल पेंशन योजना (APY)",
+            scheme6Description: "यह पेंशन योजना असंगठित क्षेत्र के लिए सेवानिवृत्ति के बाद निश्चित मासिक पेंशन की गारंटी देती है।",
+            scheme7Title: "प्रधानमंत्री जीवन ज्योति बीमा योजना (PMJJBY)",
+            scheme7BackTitle: "प्रधानमंत्री जीवन ज्योति बीमा योजना (PMJJBY)",
+            scheme7Description: "यह जीवन बीमा योजना किसी भी कारण से होने वाली मृत्यु के लिए ₹2 लाख की कवरेज प्रदान करती है।",
+            scheme8Title: "आयुष्मान भारत स्वास्थ्य और कल्याण केंद्र",
+            scheme8BackTitle: "आयुष्मान भारत स्वास्थ्य और कल्याण केंद्र",
+            scheme8Description: "समुदायों को व्यापक प्राथमिक स्वास्थ्य सेवाएं प्रदान करता है।",
+            scheme9Title: "स्टैंड अप इंडिया योजना",
+            scheme9BackTitle: "स्टैंड अप इंडिया योजना",
+            scheme9Description: "SC/ST और महिलाओं के लिए उद्यमिता को बढ़ावा देने के लिए ₹10 लाख से ₹1 करोड़ के बीच बैंक ऋण प्रदान करता है।",
+            scheme10Title: "राष्ट्रीय पेंशन योजना (NPS)",
+            scheme10BackTitle: "राष्ट्रीय पेंशन योजना (NPS)",
+            scheme10Description: "भारतीय नागरिकों के लिए स्वैच्छिक सेवानिवृत्ति बचत योजना ताकि सेवानिवृत्ति के बाद वित्तीय स्थिरता सुनिश्चित हो सके।",
+            scheme11Title: "दीन दयाल उपाध्याय ग्राम ज्योति योजना (DDUGJY)",
+            scheme11BackTitle: "दीन दयाल उपाध्याय ग्राम ज्योति योजना (DDUGJY)",
+            scheme11Description: "भारत के ग्रामीण क्षेत्रों में विद्युतीकरण और घरों के लिए बिजली प्रदान करता है।",
+            apply: "आवेदन करें",
+        }
+    };
+
+    function translatePage() {
+        const language = document.getElementById('language-selector').value;
+        const t = translations[language];
+        // Dashboard title
+        document.getElementById('dashboard-title').innerText = t.title;
+        // Nav links
+        const navLinks = document.querySelectorAll('nav a');
+        if (navLinks.length >= 3) {
+            navLinks[0].innerText = t.govtSchemes;
+            navLinks[1].innerText = t.checkSchemes;
+            navLinks[2].innerText = t.trackApplication;
+        }
+        // Scheme cards
+        for (let i = 1; i <= 12; i++) {
+            if (document.getElementById(`scheme${i}-title`)) document.getElementById(`scheme${i}-title`).innerText = t[`scheme${i}Title`] || '';
+            if (document.getElementById(`scheme${i}-back-title`)) document.getElementById(`scheme${i}-back-title`).innerText = t[`scheme${i}BackTitle`] || '';
+            if (document.getElementById(`scheme${i}-description`)) document.getElementById(`scheme${i}-description`).innerText = t[`scheme${i}Description`] || '';
+        }
+        // Apply buttons
+        const applyButtons = document.querySelectorAll('.yojana a');
+        applyButtons.forEach(btn => btn.innerText = t.apply);
+    }
+</script>
+
+<body>
+    <header>
+        <h1 id="dashboard-title">My Yojana</h1>
+        <button class="animated-button">
+            <svg viewBox="0 0 24 24" class="arr-2" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"
+              ></path>
+            </svg>
+            <span class="text"><a href="/chatbot">Chat Maitri</a></span>
+            <span class="circle"></span>
+            <svg viewBox="0 0 24 24" class="arr-1" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"
+              ></path>
+            </svg>
+          </button>
+          
+    </header>
+
+    <nav>
+        <div>
+           
+            <a href="/index2">Govt Schemes</a>
+            <a href="/check-schemes">Check Eligible Schemes</a>
+            <a href="/tracking">Track your application</a>
+        </div>
+        <div>
+            
+            <select id="language-selector" style="margin-left: 20px;" onchange="translatePage()">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+            </select>
+            
+        </div>
+    </nav>
+
+    <div class="cards" style="margin: 42px;">
+        <div class="grid-container">
+            <!-- Initially visible placards -->
+            <div class="flip-card visible">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://presentations.gov.in/wp-content/uploads/2020/06/PMJAY-Preview.png?x31571" alt="Image 1">
+                        <p class="title" id="scheme1-title">Pradhan Mantri Jan Arogya Yojna</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme1-back-title">Education for All</p>
+                        <p id="scheme1-description">This scheme provides free education to children from underprivileged backgrounds.</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/ab-pmjay">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card visible">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="static/image/awas.png" alt="Image 2">
+                    <p class="title" id="scheme2-title">Asagatit Karmakar Gambhir Bimari Chikitsa Sahayata (PM-JAY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme2-back-title">Asagatit Karmakar Gambhir Bimari Chikitsa Sahayata (PM-JAY)</p>
+                        <p id="scheme2-description">Labour department of chhatisgarh state started this scheme for unorganized workers</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/akgbcsy">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card visible">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://upload.wikimedia.org/wikipedia/en/6/6c/Pradhan_Mantri_Awas_Yojana-Urban_%28PMAY-U%29_logo.png" alt="Image 3">
+                        <p class="title" id="scheme3-title">Pradhan Mantri Awas Yojana (PMAY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme3-back-title">Pradhan Mantri Awas Yojana (PMAY)</p>
+                        <p id="scheme3-description"> Aims to provide affordable housing to urban and rural poor by 2022.</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/pmay-g">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Initially hidden placards -->
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://currentaffairs.khanglobalstudies.com/wp-content/uploads/2024/06/pm-kisan-yojana.jpg" alt="Image 4">
+                        <p class="title" id="scheme4-title">Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme4-back-title">Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)</p>
+                        <p id="scheme4-description">Provides income support of ₹6,000 per year to eligible farmer families.</p>
+                        <button class="yojana"><a href="">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://www.sanskritiias.com/uploaded_files/images//pmfby.jpg" alt="Image 5">
+                        <p class="title" id="scheme5-title">Pradhan Mantri Fasal Bima Yojana (PMFBY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme5-back-title">Pradhan Mantri Fasal Bima Yojana (PMFBY)</p>
+                        <p id="scheme5-description">4. Offers insurance coverage for crops against natural calamities, pests, and diseases.
+                        </p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/pmfby">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="static/image/atal.png" alt="Image 6">
+                        <p class="title" id="scheme6-title">Atal Pension Yojana (APY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme6-back-title">Atal Pension Yojana (APY)</p>
+                        <p id="scheme6-description">5. A pension scheme that guarantees a fixed monthly pension after retirement for the unorganized sector.
+                        </p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/pmsby">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://i0.wp.com/iasnext.com/wp-content/uploads/2024/02/Pradhan-Mantri-Jeevan-Jyoti.webp" alt="Image 7">
+                        <p class="title" id="scheme7-title">Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme7-back-title">Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)</p>
+                        <p id="scheme7-description">Life insurance scheme offering ₹2 lakh coverage for death due to any cause, at a premium of ₹330 per annum.</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/pmjjbyn">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://newsmantra.in/wp-content/uploads/2022/04/ayushman.png" alt="Image 8">
+                        <p class="title" id="scheme8-title">Ayushman Bharat Health and Wellness Centres</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme8-back-title">Ayushman Bharat Health and Wellness Centres</p>
+                        <p id="scheme8-description">Provides comprehensive primary healthcare services to communities.</p>
+                        <button class="yojana"><a href="https://ab-hwc.nhp.gov.in/">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://tatsatchronicle.com/wp-content/uploads/2021/07/startup-india-standup-india.jpg" alt="Image 9">
+                        <p class="title" id="scheme9-title">Stand Up India Scheme</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme9-back-title">Stand Up India Scheme</p>
+                        <p id="scheme9-description">Provides bank loans between ₹10 lakh and ₹1 crore to promote entrepreneurship among SC/ST and women.</p>
+                        <button class="yojana"><a href="https://www.indiaagainstcorruption.org.in/">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://fpa.edu.in/wp-content/uploads/2023/01/National-Pension-Scheme.jpg" alt="Image 10">
+                        <p class="title" id="scheme10-title">National Pension Scheme (NPS)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme10-back-title">National Pension Scheme (NPS)</p>
+                        <p id="scheme10-description">A voluntary retirement savings plan for Indian citizens to ensure financial stability post-retirement</p>
+                        <button class="yojana"><a href="https://enps.nsdl.com/eNPS/NationalPensionSystem.html">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://a0.anyrgb.com/pngimg/1968/1862/deen-dayal-upadhyaya-gram-jyoti-yojana-deen-dayal-upadhyaya-grameen-kaushalya-yojana-deendayal-upadhyaya-rural-electrification-pradhan-mantri-jan-dhan-yojana-housing-for-all-digital.png" alt="Image 11">
+                        <p class="title" id="scheme11-title">Deen Dayal Upadhyaya Gram Jyoti Yojana (DDUGJY)</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme11-back-title">Deen Dayal Upadhyaya Gram Jyoti Yojana (DDUGJY)</p>
+                        <p id="scheme11-description">Focuses on rural electrification and strengthening the distribution of power in rural areas.</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/ddugku">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flip-card">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <img class="scheme-image" src="https://pibindia.wordpress.com/wp-content/uploads/2015/08/final-swachh-bharat-mib-google-cover-page_01.jpg?w=1225" alt="Image 12">
+                        <p class="title" id="scheme12-title">Swachh Bharat</p>
+                    </div>
+                    <div class="flip-card-back">
+                        <p class="title" id="scheme12-back-title">Swachh Bharat</p>
+                        <p id="scheme12-description"> Aims to achieve a clean and open-defecation-free India through improved sanitation and hygiene practices.</p>
+                        <button class="yojana"><a href="https://www.myscheme.gov.in/schemes/sbm-g-i">Apply</a></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 My Yojana. All rights reserved.</p>
+    </footer>
+    
+
+    <script>
+        // Toggle dark mode
+        const toggleDarkMode = () => {
+            document.body.classList.toggle('dark-mode');
+        };
+
+        // Function to check if an element is in viewport
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        // Function to handle scroll visibility
+        function handleScrollVisibility() {
+            const cards = document.querySelectorAll('.flip-card');
+            cards.forEach(card => {
+                if (isInViewport(card)) {
+                    card.classList.add('visible');
+                }
+            });
+        }
+
+        // Add scroll event listener
+        window.addEventListener('scroll', handleScrollVisibility);
+        
+        // Initial check for visible cards
+        document.addEventListener('DOMContentLoaded', () => {
+            handleScrollVisibility();
+        });
+    </script>
+</body>
+</html>

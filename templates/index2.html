@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Government Scheme Search Engine</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('https://wallpapercave.com/wp/wp8385378.jpg');
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            animation: toggleUp 0.5s ease;
+            overflow: visible;
+            position: relative;
+        }
+
+        @keyframes toggleUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group label {
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .form-control {
+            border-radius: 50px;
+            padding: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+
+        .btn-primary {
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-size: 1rem;
+            background-color: #28a745;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #218838;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            transform: scale(1.05);
+        }
+
+        .scheme-details {
+            background-color: rgba(233, 236, 239, 0.97);
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 60px;
+            transition: box-shadow 0.3s ease;
+            border: 2px solid #28a745;
+            box-shadow: 0 12px 32px rgba(40, 167, 69, 0.15);
+            position: static;
+            z-index: auto;
+            width: 100%;
+            max-width: 100%;
+            overflow: visible;
+        }
+
+        .scheme-details h3 {
+            font-size: 1.5rem;
+            color: #28a745;
+        }
+
+        .scheme-details p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .scheme-details:hover {
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.1);
+        }
+
+        .highlight {
+            color: #218838;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .highlight:hover {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Yojana</h1>
+        <form id="schemeForm">
+            <div class="form-group">
+                <label for="scheme_name">Select Scheme Name:</label>
+                <select class="form-control" id="scheme_name" name="scheme_name" required>
+                    <option value="" selected></option> <!-- Blank placeholder -->
+                    <option value="Ayushman Bharat">Ayushman Bharat</option>
+                    <option value="Beti Bachao Beti Padhao">Beti Bachao Beti Padhao</option>
+                    <option value="Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)">Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)</option>
+                    <option value="National Social Assistance Scheme">National Social Assistance Scheme</option>
+                    <option value="Stand Up India Scheme">Stand Up India Scheme</option>
+                    <option value="Pradhan Mantri Matru Vandana Yojana">Pradhan Mantri Matru Vandana Yojana</option>
+                    <option value="Swachh Bharat Mission">Swachh Bharat Mission</option>
+                    <option value="Deen Dayal Upadhyaya Grameen Kaushalya Yojana">Deen Dayal Upadhyaya Grameen Kaushalya Yojana</option>
+                    <option value="Pradhan Mantri Awas Yojana (PMAY)">Pradhan Mantri Awas Yojana (PMAY)</option>
+                    <option value="Atal Pension Yojana">Atal Pension Yojana</option>
+                    <option value="Digital India Programme">Digital India Programme</option>
+                    <option value="Pradhan Mantri Kaushal Vikas Yojana (PMKVY)">Pradhan Mantri Kaushal Vikas Yojana (PMKVY)</option>
+                    <option value="Pradhan Mantri Jan Dhan Yojana">Pradhan Mantri Jan Dhan Yojana</option>
+                    <option value="Skill India Initiative">Skill India Initiative</option>
+                    <option value="PM Ujjwala Yojana">PM Ujjwala Yojana</option>
+                    <option value="Pradhan Mantri Suraksha Bima Yojana">Pradhan Mantri Suraksha Bima Yojana</option>
+                    <option value="Pradhan Mantri Jeevan Jyoti Bima Yojana">Pradhan Mantri Jeevan Jyoti Bima Yojana</option>
+                    <option value="PM Kisan Samman Nidhi">PM Kisan Samman Nidhi</option>
+                    <option value="National Health Mission">National Health Mission</option>
+                    <option value="Mid-Day Meal Scheme">Mid-Day Meal Scheme</option>
+                    <option value="Swarna Jayanti Shahari Rozgar Yojana">Swarna Jayanti Shahari Rozgar Yojana</option>
+                    <option value="Integrated Child Development Services (ICDS)">Integrated Child Development Services (ICDS)</option>
+                    <option value="Pradhan Mantri Gram Sadak Yojana">Pradhan Mantri Gram Sadak Yojana</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="state_name">Select State:</label>
+                <select class="form-control" id="state_name" name="state_name" required>
+                    <option value="" selected></option> <!-- Blank placeholder -->
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="West Bengal">West Bengal</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <div class="scheme-details" id="schemeDetails" style="display:none;">
+            <h3>Scheme Details</h3>
+            <p><strong class="highlight">Scheme Name:</strong> <span id="schemeName">N/A</span></p>
+            <p><strong class="highlight">Genre:</strong> <span id="genre">N/A</span></p>
+            <p><strong class="highlight">Description:</strong> <span id="description">N/A</span></p>
+            <p><strong class="highlight">Eligibility Criteria:</strong> <span id="eligibility">N/A</span></p>
+        </div>
+    </div>
+
+    <script>
+        const schemeData = {
+            "Ayushman Bharat": {
+                genre: "Healthcare",
+                description: "A flagship scheme providing health coverage for the poor. It aims to cover hospital expenses up to ₹5 lakh per family annually.",
+                eligibility: "Eligible for families living below the poverty line."
+            },
+            "Beti Bachao Beti Padhao": {
+                genre: "Women Empowerment",
+                description: "Aimed at promoting gender equality and empowering girls through education and health initiatives.",
+                eligibility: "Applicable to all families with girls."
+            },
+            "Mahatma Gandhi National Rural Employment Guarantee Act (MGNREGA)": {
+                genre: "Employment",
+                description: "Provides legal guarantee for at least 100 days of unskilled wage employment in a financial year to every rural household.",
+                eligibility: "All rural households are eligible."
+            },
+            "National Social Assistance Scheme": {
+                genre: "Social Welfare",
+                description: "Provides financial assistance to the elderly, widows, and disabled persons in need.",
+                eligibility: "Eligibility varies based on age and socio-economic status."
+            },
+            "Stand Up India Scheme": {
+                genre: "Entrepreneurship",
+                description: "Aims to promote entrepreneurship among women and SC/ST communities by providing financial support.",
+                eligibility: "Women and SC/ST individuals over 18 years."
+            },
+            "Pradhan Mantri Matru Vandana Yojana": {
+                genre: "Maternal Health",
+                description: "A cash incentive scheme for pregnant women and lactating mothers for proper nutrition and health.",
+                eligibility: "Pregnant women above 19 years of age."
+            },
+            "Swachh Bharat Mission": {
+                genre: "Sanitation",
+                description: "A nationwide campaign aimed at promoting cleanliness and hygiene through community participation.",
+                eligibility: "Open to all communities and households."
+            },
+            "Deen Dayal Upadhyaya Grameen Kaushalya Yojana": {
+                genre: "Skill Development",
+                description: "Focuses on enhancing the employability of rural youth by providing skill development training.",
+                eligibility: "Rural youth between 15 to 35 years."
+            },
+            "Pradhan Mantri Awas Yojana (PMAY)": {
+                genre: "Housing",
+                description: "Aims to provide affordable housing to the urban poor and homeless families.",
+                eligibility: "Based on family income and housing needs."
+            },
+            "Atal Pension Yojana": {
+                genre: "Retirement",
+                description: "A pension scheme aimed at providing financial security to workers in the unorganised sector.",
+                eligibility: "All citizens aged 18-40 years."
+            },
+            "Digital India Programme": {
+                genre: "Digital Empowerment",
+                description: "Aims to transform India into a digitally empowered society and knowledge economy.",
+                eligibility: "Open to all citizens."
+            },
+            "Pradhan Mantri Kaushal Vikas Yojana (PMKVY)": {
+                genre: "Skill Development",
+                description: "Provides skill training to youth to enhance their employability.",
+                eligibility: "Youth aged 18-35 years."
+            },
+            "Pradhan Mantri Jan Dhan Yojana": {
+                genre: "Financial Inclusion",
+                description: "A national mission for financial inclusion, ensuring access to banking services for all.",
+                eligibility: "All citizens of India."
+            },
+            "Skill India Initiative": {
+                genre: "Skill Development",
+                description: "A national policy to enhance the skill sets of the Indian workforce.",
+                eligibility: "Citizens seeking skill training."
+            },
+            "PM Ujjwala Yojana": {
+                genre: "Health & Environment",
+                description: "A scheme aimed at providing clean cooking fuel to households below the poverty line.",
+                eligibility: "Families living below the poverty line."
+            },
+            "Pradhan Mantri Suraksha Bima Yojana": {
+                genre: "Insurance",
+                description: "A scheme providing accidental death and disability coverage at a low premium.",
+                eligibility: "Individuals aged 18-70 years."
+            },
+            "Pradhan Mantri Jeevan Jyoti Bima Yojana": {
+                genre: "Life Insurance",
+                description: "A life insurance scheme aimed at providing affordable life insurance coverage.",
+                eligibility: "Individuals aged 18-50 years."
+            },
+            "PM Kisan Samman Nidhi": {
+                genre: "Agriculture",
+                description: "Direct cash transfer to farmers to ensure their financial security and enhance agricultural productivity.",
+                eligibility: "Small and marginal farmers."
+            },
+            "National Health Mission": {
+                genre: "Healthcare",
+                description: "A health care delivery initiative that aims to provide accessible and affordable healthcare services.",
+                eligibility: "Based on socio-economic status."
+            },
+            "Mid-Day Meal Scheme": {
+                genre: "Nutrition",
+                description: "Provides free lunches on working days for children in primary and upper primary classes.",
+                eligibility: "Children enrolled in government schools."
+            },
+            "Swarna Jayanti Shahari Rozgar Yojana": {
+                genre: "Urban Employment",
+                description: "Aimed at providing self-employment and wage employment opportunities in urban areas.",
+                eligibility: "Urban unemployed individuals."
+            },
+            "Integrated Child Development Services (ICDS)": {
+                genre: "Child Development",
+                description: "Aimed at holistic development of children under 6 years of age through health, nutrition, and education.",
+                eligibility: "Children and mothers in need."
+            },
+            "Pradhan Mantri Gram Sadak Yojana": {
+                genre: "Infrastructure",
+                description: "A scheme for providing all-weather road connectivity to unconnected villages.",
+                eligibility: "Villages lacking road connectivity."
+            }
+        };
+
+        function showSchemeDetails(event) {
+            event.preventDefault();
+            const schemeName = document.getElementById('scheme_name').value;
+            const stateName = document.getElementById('state_name').value;
+            const detailsDiv = document.getElementById('schemeDetails');
+
+            if (schemeData[schemeName] && stateName) {
+                document.getElementById('schemeName').textContent = schemeName;
+                document.getElementById('genre').textContent = schemeData[schemeName].genre;
+                document.getElementById('description').textContent = schemeData[schemeName].description;
+                document.getElementById('eligibility').textContent = schemeData[schemeName].eligibility;
+                detailsDiv.style.display = 'block';
+            } else {
+                detailsDiv.style.display = 'none';
+                alert('Please select both a scheme and a state.');
+            }
+        }
+
+        document.getElementById('schemeForm').addEventListener('submit', showSchemeDetails);
+    </script>
+</body>
+</html>
