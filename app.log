@@ -85,3 +85,4 @@ https://scikit-learn.org/stable/model_persistence.html#security-maintainability-
 INFO:__main__:Starting Flask application
 WARNING:werkzeug: * Debugger is active!
 INFO:werkzeug: * Debugger PIN: 590-703-539
+INFO:werkzeug:127.0.0.1 - - [13/Aug/2025 13:01:25] "HEAD /govt-schemes HTTP/1.1" 200 -

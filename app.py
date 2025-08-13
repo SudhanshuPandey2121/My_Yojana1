@@ -67,6 +67,19 @@ except Exception as e:
     logger.error(f"Error initializing Gemini model: {str(e)}")
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+@app.after_request
+def add_no_cache_headers(response):
+    try:
+        if 'text/html' in response.headers.get('Content-Type', ''):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+    except Exception:
+        pass
+    return response
 
 # Language helper
 @app.before_request
