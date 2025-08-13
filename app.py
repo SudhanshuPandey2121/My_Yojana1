@@ -243,12 +243,12 @@ def check_schemes():
             recommended_schemes.sort(key=lambda x: x.score, reverse=True)
             
             default_images = [
-                "https://via.placeholder.com/350x200?text=Default+1",
-                "https://via.placeholder.com/350x200?text=Default+2",
-                "https://via.placeholder.com/350x200?text=Default+3",
-                "https://via.placeholder.com/350x200?text=Default+4",
-                "https://via.placeholder.com/350x200?text=Default+5",
-                "https://via.placeholder.com/350x200?text=Default+6"
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
+                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740"
             ]
             return render_template('recommendations.html', 
                                 recommended_schemes=recommended_schemes,
