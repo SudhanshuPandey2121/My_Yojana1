@@ -47,26 +47,29 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
 ]
 
-# Initialize the model
+# ================================
+# Chatbot model initialization
+# ================================
 try:
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-1.5-flash",  # switched to cheaper model
         safety_settings=safety_settings,
         generation_config=generation_config,
-        system_instruction="You are trained to assist users in identifying the most suitable government scheme based on their requirements. Format the response in valid HTML with appropriate bold sections and even make the list headings in bold.",
+        system_instruction="You are trained to assist users in identifying the most suitable government scheme based on their requirements. Format the response in valid HTML with appropriate bold sections and make list headings bold."
     )
-    logger.info("Successfully initialized Gemini model")
+    logger.info("Successfully initialized Gemini model (gemini-1.5-flash)")
 except Exception as e:
     logger.error(f"Error initializing Gemini model: {str(e)}")
 
-app = Flask(__name__)
-
-# Create a chat session
+# Create a chat session AFTER model init
 try:
     chat_session = model.start_chat(history=[])
     logger.info("Successfully created chat session")
 except Exception as e:
     logger.error(f"Error creating chat session: {str(e)}")
+
+# Flask app
+app = Flask(__name__)
 
 # Load the models and datasets
 with open('government_scheme_model.pkl', 'rb') as f:
@@ -145,54 +148,7 @@ def get_scheme_info(scheme_name):
         'Eligibility Criteria': f"Applicable Age: {scheme['Applicable Age']}, Gender: {scheme['Gender']}, Income Range: {scheme['Income Range']}"
     }
 
-# Function to check eligibility based on criteria
-def check_eligibility(age, gender, state, income):
-    eligible_schemes = []
-    for _, scheme in df[df['State'] == state].iterrows():
-        age_range = scheme['Applicable Age'].split('-')
-        
-        if len(age_range) == 2:
-            min_age, max_age = map(int, age_range)
-            if not (min_age <= age <= max_age):
-                continue
-        elif scheme['Applicable Age'] != 'All Ages' and int(scheme['Applicable Age']) != age:
-            continue
-
-        if scheme['Gender'] != 'Both' and scheme['Gender'] != gender:
-            continue
-
-        if scheme['State'] != state:
-            continue
-
-        if scheme['Income Range'] != 'No Income Limit':
-            max_income = int(scheme['Income Range'].split()[2].replace(',', '')) * 100000
-            if income > max_income:
-                continue
-
-        eligible_schemes.append(scheme['Scheme Name'])
-
-    return eligible_schemes
-
-# Function to get machine learning recommendations
-def get_ml_recommendations(age, gender, state, income):
-    try:
-        gender_encoded = le_gender.transform([gender])[0]
-    except ValueError:
-        gender_encoded = -1  # Use a default value for unseen labels
-
-    try:
-        state_encoded = le_state.transform([state])[0]
-    except ValueError:
-        state_encoded = -1  # Use a default value for unseen labels
-
-    income_encoded = income // 100000  # Convert to lakhs
-
-    input_data = [[age, gender_encoded, state_encoded, income_encoded]]
-    probabilities = clf.predict_proba(input_data)[0]
-    
-    # Get top 5 recommendations
-    top_indices = probabilities.argsort()[-5:][::-1]
-    return [clf.classes_[i] for i in top_indices]
+# ---------------- ROUTES ----------------
 
 @app.route('/')
 def index():
@@ -202,11 +158,8 @@ def index():
 def check_schemes():
     if request.method == 'POST':
         try:
-            # Get form data
             categories = request.form.getlist('categories')
-            # Remove any duplicates while preserving order
             categories = list(dict.fromkeys(categories))
-            
             user_profile = {
                 'age': int(request.form.get('age', 0)),
                 'occupation': request.form.get('occupation', ''),
@@ -215,61 +168,19 @@ def check_schemes():
                 'location': request.form.get('location', ''),
                 'category_preferences': categories
             }
-            
-            # Validate input
             if not user_profile['occupation'] or not user_profile['location'] or not user_profile['state']:
-                return render_template('check_schemes.html', 
-                                    error="Please fill in all required fields",
-                                    recommended_schemes=[])
-            
-            # Get recommended schemes
+                return render_template('check_schemes.html', error="Please fill in all required fields", recommended_schemes=[])
             recommended_schemes = recommend_schemes(user_profile)
-            
             if not recommended_schemes:
-                default_images = [
-                    "https://via.placeholder.com/350x200?text=Default+1",
-                    "https://via.placeholder.com/350x200?text=Default+2",
-                    "https://via.placeholder.com/350x200?text=Default+3",
-                    "https://via.placeholder.com/350x200?text=Default+4",
-                    "https://via.placeholder.com/350x200?text=Default+5",
-                    "https://via.placeholder.com/350x200?text=Default+6"
-                ]
-                return render_template('recommendations.html', 
-                                    error="No schemes found matching your criteria",
-                                    recommended_schemes=[],
-                                    default_images=default_images)
-            
-            # Sort schemes by score in descending order
+                default_images = [f"https://via.placeholder.com/350x200?text=Default+{i}" for i in range(1, 7)]
+                return render_template('recommendations.html', error="No schemes found matching your criteria", recommended_schemes=[], default_images=default_images)
             recommended_schemes.sort(key=lambda x: x.score, reverse=True)
-            
-            default_images = [
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
-                "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740"
-            ]
-            return render_template('recommendations.html', 
-                                recommended_schemes=recommended_schemes,
-                                error=None,
-                                default_images=default_images)
-            
+            default_images = ["https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740"] * 6
+            return render_template('recommendations.html', recommended_schemes=recommended_schemes, error=None, default_images=default_images)
         except Exception as e:
             logger.error(f"Error in check_schemes: {str(e)}")
-            default_images = [
-                "https://via.placeholder.com/350x200?text=Default+1",
-                "https://via.placeholder.com/350x200?text=Default+2",
-                "https://via.placeholder.com/350x200?text=Default+3",
-                "https://via.placeholder.com/350x200?text=Default+4",
-                "https://via.placeholder.com/350x200?text=Default+5",
-                "https://via.placeholder.com/350x200?text=Default+6"
-            ]
-            return render_template('recommendations.html', 
-                                error="An error occurred while processing your request",
-                                recommended_schemes=[],
-                                default_images=default_images)
-    
+            default_images = [f"https://via.placeholder.com/350x200?text=Default+{i}" for i in range(1, 7)]
+            return render_template('recommendations.html', error="An error occurred while processing your request", recommended_schemes=[], default_images=default_images)
     return render_template('check_schemes.html', error=None, recommended_schemes=[])
 
 @app.route('/scheme/<int:scheme_id>')
@@ -283,13 +194,11 @@ def scheme_details(scheme_id):
         logger.error(f"Error in scheme_details: {str(e)}")
         return redirect(url_for('check_schemes'))
 
-# Route for serving the chatbot page
 @app.route("/chatbot")
 def chatbot():
     logger.info("Accessing chatbot page")
     return render_template("chatindex.html")
 
-# Route for handling chatbot messages
 @app.route("/chatbot/send_message", methods=["POST"])
 def send_message():
     try:
@@ -297,19 +206,12 @@ def send_message():
         if not user_input:
             logger.warning("No message provided in request")
             return jsonify({"response": "No input provided."})
-
         logger.info(f"Received message: {user_input}")
-
-        # Send user input to the AI model
         response = chat_session.send_message(user_input)
         model_response = response.text
-
         logger.info(f"Model response: {model_response}")
-
-        # Append conversation to chat history
         chat_session.history.append({"role": "user", "parts": [user_input]})
         chat_session.history.append({"role": "model", "parts": [model_response]})
-
         return jsonify({"response": model_response})
     except Exception as e:
         logger.error(f"Error in send_message: {str(e)}")
@@ -317,9 +219,7 @@ def send_message():
 
 @app.route('/govt-schemes', methods=['GET', 'POST'])
 def govt_schemes():
-    states = [
-        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
-    ]
+    states = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"]
     scheme_details = None
     error = None
     selected_type = None
@@ -332,25 +232,14 @@ def govt_schemes():
         if not scheme_name:
             error = "Please enter a scheme name."
         else:
-            # Use get_scheme_details to fetch details
             scheme_details = get_scheme_details(scheme_name)
             if not scheme_details:
                 error = f"No details found for scheme: {scheme_name}"
-    return render_template(
-        'govt_schemes.html',
-        states=states,
-        scheme_details=scheme_details,
-        error=error,
-        selected_type=selected_type,
-        selected_state=selected_state,
-        scheme_name=scheme_name
-    )
+    return render_template('govt_schemes.html', states=states, scheme_details=scheme_details, error=error, selected_type=selected_type, selected_state=selected_state, scheme_name=scheme_name)
 
 @app.route('/index2', methods=['GET', 'POST'])
 def index2():
-    states = [
-        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
-    ]
+    states = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"]
     scheme_details = None
     error = None
     selected_type = None
@@ -366,15 +255,7 @@ def index2():
             scheme_details = get_scheme_details(scheme_name)
             if not scheme_details:
                 error = f"No details found for scheme: {scheme_name}"
-    return render_template(
-        'index2.html',
-        states=states,
-        scheme_details=scheme_details,
-        error=error,
-        selected_type=selected_type,
-        selected_state=selected_state,
-        scheme_name=scheme_name
-    )
+    return render_template('index2.html', states=states, scheme_details=scheme_details, error=error, selected_type=selected_type, selected_state=selected_state, scheme_name=scheme_name)
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")
