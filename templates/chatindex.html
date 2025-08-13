@@ -238,12 +238,24 @@
                 // Remove loading indicator
                 removeLoadingMessage();
 
+                const data = await response.json().catch(() => ({ response: `HTTP error ${response.status}` }));
+
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    if (response.status === 429) {
+                        const wait = Number(data.retry_after_seconds || 60);
+                        addMessage(`Rate limit exceeded. Please wait about ${wait} seconds and try again.`, "error");
+                        // Start a cooldown to prevent immediate retries
+                        startCooldown(wait);
+                    } else if (response.status === 403) {
+                        addMessage(data.response || "Access denied for the selected model. Check API key permissions and model availability.", "error");
+                    } else if (data && data.response) {
+                        addMessage(data.response, "error");
+                    } else {
+                        addMessage(`HTTP error ${response.status}`, "error");
+                    }
+                    return;
                 }
 
-                const data = await response.json();
-                
                 if (data.error) {
                     addMessage(`Error: ${data.error}`, "error");
                 } else {
@@ -259,6 +271,27 @@
                 userInput.disabled = false;
                 userInput.focus();
             }
+        }
+
+        function startCooldown(seconds) {
+            const userInput = document.getElementById("user-input");
+            const sendButton = document.getElementById("send-button");
+            let remaining = Math.max(1, Math.floor(seconds));
+            sendButton.disabled = true;
+            userInput.disabled = true;
+            const originalText = sendButton.textContent;
+            const interval = setInterval(() => {
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    sendButton.textContent = originalText;
+                    sendButton.disabled = false;
+                    userInput.disabled = false;
+                    userInput.focus();
+                } else {
+                    sendButton.textContent = `Wait ${remaining}s`;
+                    remaining -= 1;
+                }
+            }, 1000);
         }
 
         // Add event listener for Enter key

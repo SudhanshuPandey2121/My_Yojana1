@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import os
 import google.generativeai as genai
+from google.api_core import exceptions as google_exceptions
 from dotenv import load_dotenv
 import logging
 from scheme_data import recommend_schemes, get_scheme_by_id, get_scheme_details
@@ -19,11 +20,11 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Get API key and log if it's available
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 if not api_key:
-    logger.error("GEMINI_API_KEY not found in environment variables")
+    logger.error("GEMINI_API_KEY/GOOGLE_API_KEY not found in environment variables")
 else:
-    logger.info("GEMINI_API_KEY found")
+    logger.info("Gemini API key found in environment variables")
 
 # Initialize the Google Generative AI SDK
 try:
@@ -38,7 +39,7 @@ generation_config = {
     "top_p": 0.95,
     "top_k": 64,
     "max_output_tokens": 8192,
-    "response_mime_type": "text/plain",
+    "response_mime_type": "text/html",
 }
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
@@ -49,13 +50,14 @@ safety_settings = [
 
 # Initialize the model
 try:
+    selected_model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name=selected_model_name,
         safety_settings=safety_settings,
         generation_config=generation_config,
         system_instruction="You are trained to assist users in identifying the most suitable government scheme based on their requirements. Format the response in valid HTML with appropriate bold sections and even make the list headings in bold.",
     )
-    logger.info("Successfully initialized Gemini model")
+    logger.info(f"Successfully initialized Gemini model: {selected_model_name}")
 except Exception as e:
     logger.error(f"Error initializing Gemini model: {str(e)}")
 
@@ -311,6 +313,21 @@ def send_message():
         chat_session.history.append({"role": "model", "parts": [model_response]})
 
         return jsonify({"response": model_response})
+    except google_exceptions.ResourceExhausted as e:
+        message = str(e)
+        match = re.search(r"retry_delay\s*\{\s*seconds:\s*(\d+)", message)
+        wait_seconds = int(match.group(1)) if match else 60
+        logger.error(f"Rate limit exceeded: {message}")
+        return jsonify({
+            "response": f"Rate limit exceeded. Please wait about {wait_seconds} seconds and try again.",
+            "retry_after_seconds": wait_seconds
+        }), 429
+    except google_exceptions.PermissionDenied as e:
+        logger.error(f"Permission denied calling Gemini API: {str(e)}")
+        return jsonify({"response": "Access to the requested model is denied. Please check your API key permissions and model availability."}), 403
+    except google_exceptions.GoogleAPIError as e:
+        logger.error(f"Gemini API error: {str(e)}")
+        return jsonify({"response": "An error occurred calling the Gemini API. Please try again later."}), 502
     except Exception as e:
         logger.error(f"Error in send_message: {str(e)}")
         return jsonify({"response": f"An error occurred: {str(e)}"}), 500
