@@ -210,6 +210,13 @@
         <div class="header">
             <h1>Recommended Schemes</h1>
             <p>Based on your profile, here are the schemes that best match your needs</p>
+            <form action="/set-language" method="post" style="margin-top:10px;">
+                <label for="lang" style="margin-right:6px;">Language:</label>
+                <select id="lang" name="lang" onchange="this.form.submit()">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                </select>
+            </form>
         </div>
 
         <div class="error-message" id="errorMessage" style="display: none;"></div>
@@ -238,6 +245,7 @@
                     <div class="scheme-reason">{{ scheme.reason }}</div>
                     {% endif %}
                     <a href="/scheme/{{ scheme.id }}" class="scheme-link">View Details</a>
+                    <a href="/start-application?scheme_id={{ scheme.id }}&scheme_name={{ scheme.name | urlencode }}" class="scheme-link" style="margin-left:10px;background:#1b5e20;">Track</a>
                 </div>
             </div>
             {% endfor %}

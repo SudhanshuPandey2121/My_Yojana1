@@ -87,6 +87,15 @@
 </head>
 <body>
     <div class="container">
+        <div style="text-align:right; margin-bottom:10px;">
+            <form action="/set-language" method="post" style="display:inline-block;">
+                <label for="lang">Language:</label>
+                <select id="lang" name="lang" onchange="this.form.submit()">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                </select>
+            </form>
+        </div>
         <div class="scheme-header">
             <h1>{{ scheme.name }}</h1>
             <p>{{ scheme.short_description }}</p>
@@ -131,6 +140,7 @@
             
             {% if scheme.apply_url %}
             <a href="{{ scheme.apply_url }}" class="apply-button" target="_blank">Apply Now</a>
+            <a href="/start-application?scheme_id={{ scheme.id }}&scheme_name={{ scheme.name | urlencode }}" class="apply-button" style="background-color:#1b5e20;margin-left:10px;">Track</a>
             {% endif %}
             
             <a href="/check-schemes" class="back-button">Back to Schemes</a>

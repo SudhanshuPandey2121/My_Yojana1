@@ -13,7 +13,10 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Configure Gemini API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    logger.warning("Gemini API key not found in env vars (GEMINI_API_KEY/GOOGLE_API_KEY)")
+genai.configure(api_key=api_key)
 
 # Configure the model
 generation_config = {
@@ -60,8 +63,9 @@ class Scheme:
 def get_gemini_model():
     """Get configured Gemini model with proper settings"""
     try:
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
         model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
+            model_name=model_name,
             generation_config=generation_config,
             safety_settings=safety_settings
         )
@@ -91,14 +95,22 @@ def parse_json_response(response_text: str) -> Optional[Dict]:
         logger.error(f"Error parsing response: {str(e)}")
         return None
 
-def get_scheme_details(scheme_name: str) -> Optional[Scheme]:
-    """Get detailed information about a scheme using Gemini API"""
+def get_scheme_details(scheme_name: str, language: str = "en", scheme_type: Optional[str] = None, state: Optional[str] = None) -> Optional[Scheme]:
+    """Get detailed information about a scheme using Gemini API in the requested language"""
     model = get_gemini_model()
     if not model:
         return None
+
+    language_name = "Hindi" if language.lower() == "hi" else "English"
+    type_text = f"Type: {scheme_type}." if scheme_type else ""
+    state_text = f" State: {state}." if state else ""
+
     prompt = f"""
     Provide detailed information about the government scheme: {scheme_name}
-    Format the response as a JSON object with the following structure:
+    {type_text}{state_text}
+
+    Output REQUIREMENTS:
+    - Return ONLY a JSON object with the following structure and English KEYS. All VALUES must be in {language_name}.
     {{
         "name": "Scheme Name",
         "short_description": "Brief description in one line",
@@ -110,7 +122,7 @@ def get_scheme_details(scheme_name: str) -> Optional[Scheme]:
         "apply_url": "Official application URL",
         "categories": ["List of relevant categories"]
     }}
-    
+
     Make sure to:
     1. Include accurate and up-to-date information
     2. List specific eligibility criteria
@@ -118,8 +130,6 @@ def get_scheme_details(scheme_name: str) -> Optional[Scheme]:
     4. List all required documents
     5. Include the official application URL
     6. Add relevant categories (e.g., healthcare, education, housing, etc.)
-    
-    Return ONLY the JSON object, no additional text.
     """
     try:
         response = model.generate_content(prompt)
@@ -138,7 +148,7 @@ def get_scheme_details(scheme_name: str) -> Optional[Scheme]:
                 logger.error(f"Missing expected field '{field}' in scheme data: {scheme_data}")
                 return None
         scheme = Scheme(
-            id=hash(scheme_name) % 10000,
+            id=hash(f"{scheme_name}-{state}-{scheme_type}") % 10000,
             name=scheme_data["name"],
             short_description=scheme_data["short_description"],
             description=scheme_data["description"],
@@ -154,9 +164,10 @@ def get_scheme_details(scheme_name: str) -> Optional[Scheme]:
         logger.error(f"Error getting scheme details: {str(e)}")
         return None
 
-def recommend_schemes(user_profile: Dict) -> List[Scheme]:
+
+def recommend_schemes(user_profile: Dict, language: str = "en") -> List[Scheme]:
     """
-    Recommend schemes based on user profile using Gemini API
+    Recommend schemes based on user profile using Gemini API. Values returned in requested language.
     user_profile should contain:
     - age
     - occupation
@@ -168,8 +179,13 @@ def recommend_schemes(user_profile: Dict) -> List[Scheme]:
     model = get_gemini_model()
     if not model:
         return []
+
+    language_name = "Hindi" if language.lower() == "hi" else "English"
+
     prompt = f"""
-    Based on the following user profile, recommend suitable government schemes:
+    Based on the following user profile, recommend suitable government schemes.
+    Output VALUES must be in {language_name} but JSON KEYS must remain English.
+
     Age: {user_profile.get('age')}
     Occupation: {user_profile.get('occupation')}
     Annual Income: ₹{user_profile.get('income')}
@@ -198,58 +214,43 @@ def recommend_schemes(user_profile: Dict) -> List[Scheme]:
     - Income eligibility
     - Age-appropriate schemes
     - Location-specific schemes (both state and urban/rural)
-    - Occupation-related schemes
     - Category preferences
-    - State-specific schemes and benefits
-    
-    Important:
-    1. Return at least 6 different schemes if possible
-    2. Include both central and state government schemes
-    3. Ensure schemes are relevant to the user's profile
-    4. Provide accurate and up-to-date information
-    5. Include schemes from all selected categories
-    
-    Return ONLY the JSON array, no additional text.
     """
     try:
         response = model.generate_content(prompt)
         if not response or not response.text:
             logger.error("Empty response from Gemini API")
             return []
-        recommendations = parse_json_response(response.text)
-        if not recommendations:
+        data = parse_json_response(response.text)
+        if not isinstance(data, list):
+            logger.error(f"Expected a JSON list, got: {data}")
             return []
-        recommended_schemes = []
-        for idx, rec in enumerate(recommendations):
-            if len(recommended_schemes) >= 6:
-                break
-            if idx < 3:
-                # Fetch full details for the first 3
-                scheme = get_scheme_details(rec["name"])
-                if scheme:
-                    scheme.score = rec.get("score", 0)
-                    scheme.reason = rec.get("reason", "")
-                    recommended_schemes.append(scheme)
-            else:
-                # Only show name, score, and reason for the next 3
-                scheme = Scheme(
-                    id=hash(rec["name"]) % 10000,
-                    name=rec["name"],
-                    short_description=rec.get("description", ""),
-                    description="",
-                    image_url="",
-                    eligibility_criteria=[],
-                    benefits=[],
-                    required_documents=[],
-                    apply_url="",
-                    categories=[]
-                )
-                scheme.score = rec.get("score", 0)
-                scheme.reason = rec.get("reason", "")
-                recommended_schemes.append(scheme)
-        return recommended_schemes
+        results: List[Scheme] = []
+        for item in data:
+            name = item.get("name")
+            description = item.get("description")
+            score = item.get("score")
+            reason = item.get("reason")
+            if not name:
+                continue
+            scheme = Scheme(
+                id=hash(name) % 10000,
+                name=name,
+                short_description=description or "",
+                description=description or "",
+                image_url="",
+                eligibility_criteria=[],
+                benefits=[],
+                required_documents=[],
+                apply_url="",
+                categories=[]
+            )
+            scheme.score = score
+            scheme.reason = reason
+            results.append(scheme)
+        return results
     except Exception as e:
-        logger.error(f"Error getting recommendations: {str(e)}")
+        logger.error(f"Error recommending schemes: {str(e)}")
         return []
 
 def get_scheme_by_id(scheme_id: int) -> Optional[Scheme]:

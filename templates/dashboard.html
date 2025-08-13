@@ -413,16 +413,17 @@
     <nav>
         <div>
            
-            <a href="/index2">Govt Schemes</a>
+            <a href="/govt-schemes">Govt Schemes</a>
             <a href="/check-schemes">Check Eligible Schemes</a>
             <a href="/tracking">Track your application</a>
         </div>
         <div>
-            
-            <select id="language-selector" style="margin-left: 20px;" onchange="translatePage()">
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-            </select>
+            <form action="/set-language" method="post" style="display:inline-block;">
+                <select id="language-selector" name="lang" style="margin-left: 20px;" onchange="this.form.submit(); translatePage()">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                </select>
+            </form>
             
         </div>
     </nav>

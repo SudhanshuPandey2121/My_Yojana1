@@ -24,6 +24,15 @@
 <body>
     <div class="container">
         <h1>Search Government Schemes</h1>
+        <div style="text-align:right; margin-bottom:10px;">
+            <form action="/set-language" method="post" style="display:inline-block;">
+                <label for="lang">Language:</label>
+                <select id="lang" name="lang" onchange="this.form.submit()">
+                    <option value="en" {% if selected_language=='en' %}selected{% endif %}>English</option>
+                    <option value="hi" {% if selected_language=='hi' %}selected{% endif %}>Hindi</option>
+                </select>
+            </form>
+        </div>
         {% if error %}
             <div class="error">{{ error }}</div>
         {% endif %}
@@ -75,14 +84,11 @@
                     <li>{{ item }}</li>
                 {% endfor %}
             </ul>
-            <div class="section-title">Categories:</div>
-            <ul>
-                {% for item in scheme_details.categories %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
             <div class="section-title">Apply Link:</div>
             <a href="{{ scheme_details.apply_url }}" target="_blank">Apply Here</a>
+            <div style="margin-top:12px;">
+                <a href="/start-application?scheme_id={{ scheme_details.id }}&scheme_name={{ scheme_details.name | urlencode }}" style="background:#2e7d32;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;">Track this Application</a>
+            </div>
         </div>
         {% endif %}
     </div>

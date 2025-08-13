@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import make_response
+from flask import g
 import pandas as pd
 import pickle
 import numpy as np
@@ -10,6 +12,9 @@ import google.generativeai as genai
 from google.api_core import exceptions as google_exceptions
 from dotenv import load_dotenv
 import logging
+import uuid
+import json
+from datetime import datetime
 from scheme_data import recommend_schemes, get_scheme_by_id, get_scheme_details
 
 # Set up logging
@@ -62,6 +67,78 @@ except Exception as e:
     logger.error(f"Error initializing Gemini model: {str(e)}")
 
 app = Flask(__name__)
+
+# Language helper
+@app.before_request
+def set_language_context():
+    lang = request.cookies.get('lang') or request.args.get('lang') or 'en'
+    g.lang = 'hi' if str(lang).lower().startswith('hi') else 'en'
+
+@app.route('/set-language', methods=['GET', 'POST'])
+def set_language():
+    lang = request.values.get('lang', 'en')
+    lang = 'hi' if str(lang).lower().startswith('hi') else 'en'
+    resp = make_response(redirect(request.referrer or url_for('index')))
+    # 180 days
+    resp.set_cookie('lang', lang, max_age=180*24*3600, samesite='Lax')
+    return resp
+
+# Tracking storage helpers
+TRACKING_FILE = os.path.join(os.path.dirname(__file__), 'application_tracking.json')
+
+def _load_tracking_store():
+    if os.path.exists(TRACKING_FILE):
+        try:
+            with open(TRACKING_FILE, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def _save_tracking_store(data):
+    with open(TRACKING_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+
+@app.route('/start-application')
+def start_application():
+    scheme_id = request.args.get('scheme_id')
+    scheme_name = request.args.get('scheme_name') or ''
+    if not scheme_id and not scheme_name:
+        return redirect(url_for('index'))
+    app_id = uuid.uuid4().hex[:8]
+    entry = {
+        'id': app_id,
+        'scheme_id': scheme_id,
+        'scheme_name': scheme_name,
+        'status': 'Application Submitted',
+        'history': [
+            {'status': 'Application Submitted', 'timestamp': datetime.utcnow().isoformat() + 'Z'},
+            {'status': 'Under Review', 'timestamp': None},
+            {'status': 'Documents Verified', 'timestamp': None},
+            {'status': 'Approval Pending', 'timestamp': None},
+            {'status': 'Benefits Disbursed', 'timestamp': None},
+        ],
+        'created_at': datetime.utcnow().isoformat() + 'Z'
+    }
+    store = _load_tracking_store()
+    store[app_id] = entry
+    _save_tracking_store(store)
+    return redirect(url_for('tracking_status', app_id=app_id))
+
+@app.route('/tracking')
+def tracking_lookup():
+    app_id = request.args.get('id')
+    if app_id:
+        return redirect(url_for('tracking_status', app_id=app_id))
+    return render_template('tracking_lookup.html')
+
+@app.route('/tracking/<app_id>')
+def tracking_status(app_id):
+    store = _load_tracking_store()
+    entry = store.get(app_id)
+    if not entry:
+        return render_template('tracking_status.html', not_found=True, app_id=app_id)
+    return render_template('tracking_status.html', not_found=False, app=entry)
 
 # Create a chat session
 try:
@@ -224,8 +301,9 @@ def check_schemes():
                                     error="Please fill in all required fields",
                                     recommended_schemes=[])
             
-            # Get recommended schemes
-            recommended_schemes = recommend_schemes(user_profile)
+            # Get recommended schemes with language
+            language = getattr(g, 'lang', 'en')
+            recommended_schemes = recommend_schemes(user_profile, language=language)
             
             if not recommended_schemes:
                 default_images = [
@@ -242,7 +320,7 @@ def check_schemes():
                                     default_images=default_images)
             
             # Sort schemes by score in descending order
-            recommended_schemes.sort(key=lambda x: x.score, reverse=True)
+            recommended_schemes.sort(key=lambda x: (x.score or 0), reverse=True)
             
             default_images = [
                 "https://img.freepik.com/premium-vector/hand-drawn-india-map-illustration_23-2151716454.jpg?semt=ais_hybrid&w=740",
@@ -337,11 +415,12 @@ def govt_schemes():
     states = [
         "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
     ]
-    scheme_details = None
+    scheme_details_data = None
     error = None
     selected_type = None
     selected_state = None
     scheme_name = None
+    selected_language = getattr(g, 'lang', 'en')
     if request.method == 'POST':
         selected_type = request.form.get('scheme_type')
         selected_state = request.form.get('state')
@@ -349,18 +428,24 @@ def govt_schemes():
         if not scheme_name:
             error = "Please enter a scheme name."
         else:
-            # Use get_scheme_details to fetch details
-            scheme_details = get_scheme_details(scheme_name)
-            if not scheme_details:
+            # Fetch details in the selected language, considering scheme type/state
+            scheme_details_data = get_scheme_details(
+                scheme_name,
+                language=selected_language,
+                scheme_type=selected_type,
+                state=selected_state
+            )
+            if not scheme_details_data:
                 error = f"No details found for scheme: {scheme_name}"
     return render_template(
         'govt_schemes.html',
         states=states,
-        scheme_details=scheme_details,
+        scheme_details=scheme_details_data,
         error=error,
         selected_type=selected_type,
         selected_state=selected_state,
-        scheme_name=scheme_name
+        scheme_name=scheme_name,
+        selected_language=selected_language
     )
 
 @app.route('/index2', methods=['GET', 'POST'])
